@@ -27,8 +27,8 @@ GROUND_COLOR = (0, 255, 0)  # Color for the ground platform
 # Game properties
 ball_size = 30
 gravity = 0.5
-jump_strength = -20
-move_speed = 5
+base_jump_strength = -20  # Base jump strength for scaling
+move_speed = 5  # Speed at which the ball moves forward
 platform_width = 100
 platform_height = 20
 ground_height = 50
@@ -119,9 +119,12 @@ def draw_grid():
     for y in range(0, HEIGHT, grid_size):
         pygame.draw.line(screen, GRID_COLOR, (0, y), (WIDTH, y))
 
-def is_sound_detected():
+def get_sound_intensity():
     data = np.frombuffer(stream.read(1024), dtype=np.int16)
-    return np.max(np.abs(data)) > 1000  # Threshold for detecting sound; adjust as needed
+    return np.max(np.abs(data))
+
+def is_sound_detected(threshold=1000):
+    return get_sound_intensity() > threshold
 
 # Initialize game state
 platforms = []
@@ -150,19 +153,14 @@ while True:
     if keys[pygame.K_RETURN]:
         reset_game()
 
-    # Check for sound detection for jumping
-    sound_detected = is_sound_detected()
-    if sound_detected and not is_jumping:
+    # Check for sound detection for jumping and moving forward
+    if is_sound_detected():
+        # Calculate jump strength based on sound intensity
+        sound_intensity = get_sound_intensity()
+        jump_strength = base_jump_strength * (sound_intensity / 10000)  # Adjust scaling factor as needed
         ball_speed_y = jump_strength
+        ball_speed_x = move_speed  # Move forward on sound detection
         is_jumping = True
-
-    # Control horizontal movement with A and D keys
-    if keys[pygame.K_a]:
-        ball_speed_x = -move_speed
-    elif keys[pygame.K_d]:
-        ball_speed_x = move_speed
-    else:
-        ball_speed_x = 0
 
     # Update ball position
     ball_speed_y += gravity
