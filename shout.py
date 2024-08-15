@@ -13,7 +13,7 @@ stream = audio.open(format=pyaudio.paInt16, channels=1, rate=44100, input=True, 
 
 # Screen dimensions
 WIDTH, HEIGHT = 1300, 800
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption("Press Enter to Restart Game")
 
 # Colors
