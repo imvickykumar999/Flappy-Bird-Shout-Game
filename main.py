@@ -7,7 +7,7 @@ pygame.init()
 
 # Screen dimensions
 WIDTH, HEIGHT = 800, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
 pygame.display.set_caption("Endless Platform Game")
 
 # Colors
@@ -49,7 +49,7 @@ def reset_game():
     platforms.clear()
     for x in range(0, WIDTH + platform_width * 2, platform_width * 3):
         y = HEIGHT - ground_height - random.randint(20, 150)
-        if random.random() < 0.3:  # 30% chance to create a moving platform
+        if random.random() < 0.7:
             platforms.append(create_moving_platform(x, y))
         else:
             platforms.append(create_platform(x, y))
@@ -77,7 +77,7 @@ def add_platform():
         last_platform = platforms[-1]
         new_x = last_platform['rect'].right + random.randint(150, 300) if isinstance(last_platform, dict) else last_platform.right + random.randint(150, 300)
         new_y = HEIGHT - ground_height - random.randint(20, 150)
-        if random.random() < 0.7:  # 30% chance to create a moving platform
+        if random.random() < 0.3:  # 30% chance to create a moving platform
             platforms.append(create_moving_platform(new_x, new_y))
         else:
             platforms.append(create_platform(new_x, new_y))
@@ -133,6 +133,12 @@ while True:
             sys.exit()
 
     keys = pygame.key.get_pressed()
+    if keys[pygame.K_ESCAPE]:
+        pygame.quit()
+        sys.exit()
+    if keys[pygame.K_RETURN]:
+        reset_game()
+
     if (keys[pygame.K_w] or keys[pygame.K_SPACE]) and not is_jumping:
         ball_speed_y = jump_strength
         is_jumping = True
@@ -218,10 +224,6 @@ while True:
         if last_platform.right < camera_x + WIDTH:
             add_platform()
 
-    # Handle game restart
-    if keys[pygame.K_ESCAPE]:
-        reset_game()
-
     # Clear the screen
     screen.fill(BLACK)
 
@@ -237,6 +239,7 @@ while True:
             pygame.draw.rect(screen, WHITE, platform.move(-camera_x, 0))
         elif isinstance(platform, dict):
             pygame.draw.rect(screen, WHITE, platform['rect'].move(-camera_x, 0))
+    
     pygame.draw.ellipse(screen, RED, ball_rect.move(-camera_x, 0))
 
     # Draw score
