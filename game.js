@@ -83,11 +83,7 @@ function resetGame() {
     platforms = [];
     for (let x = 0; x < WIDTH + platformWidth * 2; x += platformWidth * 3) {
         const y = HEIGHT - groundHeight - Math.random() * 150;
-        if (Math.random() < 0.6) {
-            platforms.push(createMovingPlatform(x, y));
-        } else {
-            platforms.push(createPlatform(x, y));
-        }
+        platforms.push(createPlatform(x, y));
     }
 }
 
@@ -111,11 +107,7 @@ function addPlatform() {
     const lastPlatform = platforms[platforms.length - 1];
     const newX = lastPlatform.rect ? lastPlatform.rect.x + Math.random() * 150 + 300 : lastPlatform.x + Math.random() * 150 + 300;
     const newY = HEIGHT - groundHeight - Math.random() * 150;
-    if (Math.random() < 0.3) {
-        platforms.push(createMovingPlatform(newX, newY));
-    } else {
-        platforms.push(createPlatform(newX, newY));
-    }
+    platforms.push(createPlatform(newX, newY));
 }
 
 // Scroll platforms based on the camera position
@@ -164,8 +156,8 @@ function draw() {
     ctx.fillRect(0 - cameraX, HEIGHT - groundHeight, WIDTH, groundHeight);
 
     platforms.forEach(platform => {
-        ctx.fillStyle = platform.rect ? 'red' : 'white';
-        ctx.fillRect(platform.rect ? platform.rect.x - cameraX : platform.x - cameraX, platform.rect ? platform.rect.y : platform.y, platform.rect ? platform.rect.width : platform.width, platform.rect ? platform.rect.height : platform.height);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(platform.x - cameraX, platform.y, platform.width, platform.height);
     });
 
     ctx.fillStyle = 'yellow';
@@ -190,10 +182,13 @@ function handleGameOver() {
 
 // Game update logic
 function update() {
+    // Check if sound is detected to make the ball jump
     if (isSoundDetected()) {
-        ball.speedY = baseJumpStrength;
-        ball.speedX = moveSpeed; // Continue moving forward with jump
-        isJumping = true;
+        if (!isJumping) {
+            ball.speedY = baseJumpStrength;
+            ball.speedX = moveSpeed; // Continue moving forward with jump
+            isJumping = true;
+        }
     }
 
     ball.speedY += gravity;
@@ -203,19 +198,24 @@ function update() {
     // Update camera position to follow the ball
     cameraX = ball.x - WIDTH / 2;
 
+    // Check if the ball is touching the ground or platforms
     if (ball.y + ballSize / 2 >= HEIGHT - groundHeight) {
         ball.y = HEIGHT - groundHeight - ballSize / 2;
         ball.speedY = 0;
         isJumping = false;
     }
 
-    if (ball.y > HEIGHT) { // Game over condition
+    // Check if the ball has fallen below the bottom of the screen
+    if (ball.y > HEIGHT) {
         if (!handleGameOver()) return;
     }
+
+    let onPlatform = false;
 
     platforms.forEach(platform => {
         if (ball.x + ballSize / 2 > platform.x && ball.x - ballSize / 2 < platform.x + platform.width &&
             ball.y + ballSize / 2 > platform.y && ball.y - ballSize / 2 < platform.y + platform.height) {
+            onPlatform = true;
             if (ball.speedY > 0) {
                 ball.y = platform.y - ballSize / 2;
                 ball.speedY = 0;
@@ -237,6 +237,11 @@ function update() {
             }
         }
     });
+
+    // If the ball is not on any platform and has fallen below the screen, trigger game over
+    if (!onPlatform && ball.y > HEIGHT) {
+        if (!handleGameOver()) return;
+    }
 
     if (platforms[platforms.length - 1].x + platformWidth < cameraX + WIDTH) {
         addPlatform();
