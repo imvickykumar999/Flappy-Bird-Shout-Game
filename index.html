@@ -21,9 +21,21 @@
             height: auto;
             background: #000;
         }
+        .overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
+    <div class="overlay" id="startMessage">Click on screen to start game</div>
     <canvas id="gameCanvas" width="1300" height="800"></canvas>
     <script src="game.js"></script>
 </body>
