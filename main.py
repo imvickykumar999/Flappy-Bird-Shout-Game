@@ -21,7 +21,7 @@ gravity = 0.5
 jump_strength = -15
 move_speed = 5
 platform_width = 100
-platform_height = 20
+platform_height = 20  # This is the default height of platforms
 ground_height = 50
 
 # Initialize game state
@@ -42,9 +42,9 @@ def reset_game():
 
     # Platform properties
     platforms.clear()
-    y = HEIGHT - ground_height - platform_height
     for x in range(0, WIDTH + platform_width, platform_width):
-        platforms.append(pygame.Rect(x, y, platform_width, platform_height))
+        y = HEIGHT - ground_height - random.randint(20, 150)  # Random y position above ground
+        platforms.append(create_platform(x, y))
 
     camera_x = 0
     is_jumping = False
@@ -53,11 +53,11 @@ def create_platform(x, y):
     return pygame.Rect(x, y, platform_width, platform_height)
 
 def add_platform():
-    # Add a new platform when needed
+    # Add a new platform with a variable height (y-coordinate) when needed
     if len(platforms) > 0:
         last_platform = platforms[-1]
         new_x = last_platform.right + random.randint(50, 200)
-        new_y = HEIGHT - ground_height - random.randint(50, 150)
+        new_y = HEIGHT - ground_height - random.randint(20, 150)  # Random y position above ground
         platforms.append(create_platform(new_x, new_y))
 
 def scroll_platforms(camera_x):
