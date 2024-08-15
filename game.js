@@ -6,15 +6,15 @@ const ctx = canvas.getContext('2d');
 const WIDTH = 1300;
 const HEIGHT = 800;
 const ballSize = 30;
-const gravity = 0.5;
-const baseJumpStrength = -20;
-const moveSpeed = 5;
+const gravity = 0.05;
+const baseJumpStrength = -2;
+const moveSpeed = 3;
 const platformWidth = 100;
 const platformHeight = 20;
 const platformMoveSpeed = 2;
 const platformMoveRange = 100;
 const gridSize = 40;
-const threshold = 20; // Threshold for sound detection
+const threshold = 90; // Threshold for sound detection
 
 let ball = {
     x: WIDTH / 2,
@@ -26,7 +26,6 @@ let ball = {
 let platforms = [];
 let steppedOnPlatforms = new Set();
 let score = 0;
-let isJumping = false;
 let cameraX = 0;
 let startX = ball.x;
 
@@ -65,7 +64,6 @@ function resetGame() {
     ball.speedX = moveSpeed;
     ball.speedY = 0;
     cameraX = 0;
-    isJumping = false;
     steppedOnPlatforms.clear();
     score = 0;
     startX = ball.x;
@@ -150,8 +148,6 @@ function draw() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     drawGrid();
 
-    // Ground platform removed
-
     platforms.forEach(platform => {
         ctx.fillStyle = platform.rect ? 'red' : 'white';
         ctx.fillRect(platform.rect ? platform.rect.x - cameraX : platform.x - cameraX, platform.rect ? platform.rect.y : platform.y, platform.rect ? platform.rect.width : platform.width, platform.rect ? platform.rect.height : platform.height);
@@ -179,10 +175,9 @@ function handleGameOver() {
 
 // Game update logic
 function update() {
-    if (isSoundDetected() && !isJumping) {
+    if (isSoundDetected()) {
         ball.speedY = baseJumpStrength;
         ball.speedX = moveSpeed; // Continue moving forward with jump
-        isJumping = true;
     }
 
     ball.speedY += gravity;
@@ -204,7 +199,6 @@ function update() {
             if (ball.speedY > 0) { // Falling down
                 ball.y = platform.y - ballSize / 2;
                 ball.speedY = 0;
-                isJumping = false;
 
                 const platformId = `${platform.x},${platform.y}`;
                 if (!steppedOnPlatforms.has(platformId)) {
