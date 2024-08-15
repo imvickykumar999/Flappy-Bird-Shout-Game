@@ -2,15 +2,25 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Game properties
-const WIDTH = 1300;
-const HEIGHT = 800;
+// Set canvas size to the window size
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+// Call the function to set the initial size
+resizeCanvas();
+
+// Update game properties based on dynamic size
+let WIDTH = canvas.width;
+let HEIGHT = canvas.height;
 const ballSize = 30;
 const gravity = 0.05;
 const baseJumpStrength = -2;
 const moveSpeed = 3;
 const platformWidth = 100;
 const platformHeight = 20;
+const groundHeight = 50;
 const platformMoveSpeed = 2;
 const platformMoveRange = 100;
 const gridSize = 40;
@@ -26,6 +36,7 @@ let ball = {
 let platforms = [];
 let steppedOnPlatforms = new Set();
 let score = 0;
+let isJumping = false;
 let cameraX = 0;
 let startX = ball.x;
 
@@ -64,13 +75,14 @@ function resetGame() {
     ball.speedX = moveSpeed;
     ball.speedY = 0;
     cameraX = 0;
+    isJumping = false;
     steppedOnPlatforms.clear();
     score = 0;
     startX = ball.x;
 
     platforms = [];
     for (let x = 0; x < WIDTH + platformWidth * 2; x += platformWidth * 3) {
-        const y = HEIGHT - 200 - Math.random() * 150; // Platform is above the void
+        const y = HEIGHT - groundHeight - Math.random() * 150;
         if (Math.random() < 0.6) {
             platforms.push(createMovingPlatform(x, y));
         } else {
@@ -98,7 +110,7 @@ function createMovingPlatform(x, y) {
 function addPlatform() {
     const lastPlatform = platforms[platforms.length - 1];
     const newX = lastPlatform.rect ? lastPlatform.rect.x + Math.random() * 150 + 300 : lastPlatform.x + Math.random() * 150 + 300;
-    const newY = HEIGHT - 200 - Math.random() * 150; // Platform is above the void
+    const newY = HEIGHT - groundHeight - Math.random() * 150;
     if (Math.random() < 0.3) {
         platforms.push(createMovingPlatform(newX, newY));
     } else {
@@ -148,6 +160,9 @@ function draw() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     drawGrid();
 
+    ctx.fillStyle = 'green';
+    ctx.fillRect(0 - cameraX, HEIGHT - groundHeight, WIDTH, groundHeight);
+
     platforms.forEach(platform => {
         ctx.fillStyle = platform.rect ? 'red' : 'white';
         ctx.fillRect(platform.rect ? platform.rect.x - cameraX : platform.x - cameraX, platform.rect ? platform.rect.y : platform.y, platform.rect ? platform.rect.width : platform.width, platform.rect ? platform.rect.height : platform.height);
@@ -178,6 +193,7 @@ function update() {
     if (isSoundDetected()) {
         ball.speedY = baseJumpStrength;
         ball.speedX = moveSpeed; // Continue moving forward with jump
+        isJumping = true;
     }
 
     ball.speedY += gravity;
@@ -187,25 +203,29 @@ function update() {
     // Update camera position to follow the ball
     cameraX = ball.x - WIDTH / 2;
 
-    let onPlatform = false;
+    if (ball.y + ballSize / 2 >= HEIGHT - groundHeight) {
+        ball.y = HEIGHT - groundHeight - ballSize / 2;
+        ball.speedY = 0;
+        isJumping = false;
+    }
+
+    if (ball.y > HEIGHT) { // Game over condition
+        if (!handleGameOver()) return;
+    }
 
     platforms.forEach(platform => {
         if (ball.x + ballSize / 2 > platform.x && ball.x - ballSize / 2 < platform.x + platform.width &&
             ball.y + ballSize / 2 > platform.y && ball.y - ballSize / 2 < platform.y + platform.height) {
-            
-            // Ball is on the platform
-            onPlatform = true;
-            
-            if (ball.speedY > 0) { // Falling down
+            if (ball.speedY > 0) {
                 ball.y = platform.y - ballSize / 2;
                 ball.speedY = 0;
-
+                isJumping = false;
                 const platformId = `${platform.x},${platform.y}`;
                 if (!steppedOnPlatforms.has(platformId)) {
                     steppedOnPlatforms.add(platformId);
                     updateScore();
                 }
-            } else if (ball.speedY < 0) { // Jumping up
+            } else if (ball.speedY < 0) {
                 ball.y = platform.y + platform.height + ballSize / 2;
                 ball.speedY = 0;
             }
@@ -218,11 +238,6 @@ function update() {
         }
     });
 
-    // If the ball is not on any platform and has fallen below a certain height, trigger game over
-    if (!onPlatform && ball.y > HEIGHT) { // Below the screen
-        if (!handleGameOver()) return;
-    }
-
     if (platforms[platforms.length - 1].x + platformWidth < cameraX + WIDTH) {
         addPlatform();
     }
@@ -230,14 +245,22 @@ function update() {
     scrollPlatforms();
 }
 
-// Start the game
+// Game loop
 function gameLoop() {
     update();
     draw();
     requestAnimationFrame(gameLoop);
 }
 
-// Set up the game on user interaction
+// Adjust canvas size on window resize
+window.addEventListener('resize', () => {
+    resizeCanvas();
+    WIDTH = canvas.width;
+    HEIGHT = canvas.height;
+    resetGame(); // Reset the game when the window size changes to adjust platforms, etc.
+});
+
+// Start the game on user interaction
 document.addEventListener('click', async () => {
     await setupAudio();
     resetGame();
