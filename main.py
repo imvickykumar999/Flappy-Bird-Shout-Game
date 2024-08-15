@@ -21,14 +21,14 @@ gravity = 0.5
 jump_strength = -15
 move_speed = 5
 platform_width = 100
-platform_height = 20  # This is the default height of platforms
+platform_height = 20
 ground_height = 50
 
 # Initialize game state
 def reset_game():
     global ball_x, ball_y, ball_speed_x, ball_speed_y, ball_rect
     global ground_rect, platforms, camera_x
-    global is_jumping
+    global is_jumping, stepped_on_platforms, score
 
     # Ball properties
     ball_x = WIDTH // 2
@@ -43,21 +43,22 @@ def reset_game():
     # Platform properties
     platforms.clear()
     for x in range(0, WIDTH + platform_width, platform_width):
-        y = HEIGHT - ground_height - random.randint(20, 150)  # Random y position above ground
+        y = HEIGHT - ground_height - random.randint(20, 150)
         platforms.append(create_platform(x, y))
 
     camera_x = 0
     is_jumping = False
+    stepped_on_platforms = set()  # Set to keep track of platform identifiers
+    score = 0
 
 def create_platform(x, y):
     return pygame.Rect(x, y, platform_width, platform_height)
 
 def add_platform():
-    # Add a new platform with a variable height (y-coordinate) when needed
     if len(platforms) > 0:
         last_platform = platforms[-1]
         new_x = last_platform.right + random.randint(50, 200)
-        new_y = HEIGHT - ground_height - random.randint(20, 150)  # Random y position above ground
+        new_y = HEIGHT - ground_height - random.randint(20, 150)
         platforms.append(create_platform(new_x, new_y))
 
 def scroll_platforms(camera_x):
@@ -68,9 +69,18 @@ def scroll_platforms(camera_x):
             new_platforms.append(platform)
     platforms = new_platforms
 
+def update_score():
+    global score
+    score = len(stepped_on_platforms)
+
 # Initialize game state
 platforms = []
+stepped_on_platforms = set()
+score = 0
 reset_game()
+
+# Font for rendering score
+font = pygame.font.Font(None, 36)
 
 # Game loop
 clock = pygame.time.Clock()
@@ -114,6 +124,10 @@ while True:
                 ball_rect.bottom = platform.top
                 ball_speed_y = 0
                 is_jumping = False
+                platform_id = (platform.left, platform.top)
+                if platform_id not in stepped_on_platforms:
+                    stepped_on_platforms.add(platform_id)
+                    update_score()
             elif ball_speed_y < 0:  # jumping up
                 ball_rect.top = platform.bottom
                 ball_speed_y = 0
@@ -139,6 +153,10 @@ while True:
     for platform in platforms:
         pygame.draw.rect(screen, WHITE, platform.move(-camera_x, 0))
     pygame.draw.ellipse(screen, RED, ball_rect.move(-camera_x, 0))
+
+    # Draw score
+    score_text = font.render(f"Score: {score}", True, WHITE)
+    screen.blit(score_text, (10, 10))
 
     # Update display
     pygame.display.flip()
