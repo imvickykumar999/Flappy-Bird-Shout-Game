@@ -42,12 +42,15 @@ async function setupAudio() {
     dataArray = new Uint8Array(analyser.frequencyBinCount);
 }
 
+// Get the sound intensity from the microphone input
 function getSoundIntensity() {
     analyser.getByteFrequencyData(dataArray);
-    return Math.max(...dataArray);
+    const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+    return average;
 }
 
-function isSoundDetected(threshold = 0.01) {
+// Check if sound is detected based on the threshold
+function isSoundDetected(threshold = 0.1) {  // Lower the threshold value
     return getSoundIntensity() > threshold;
 }
 
