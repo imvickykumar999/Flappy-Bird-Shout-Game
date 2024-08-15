@@ -14,6 +14,7 @@ pygame.display.set_caption("Endless Platform Game")
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
+YELLOW = (255, 255, 0) 
 GRID_COLOR = (50, 50, 50)
 GROUND_COLOR = (0, 255, 0)  # Color for the ground platform
 
@@ -49,7 +50,7 @@ def reset_game():
     platforms.clear()
     for x in range(0, WIDTH + platform_width * 2, platform_width * 3):
         y = HEIGHT - ground_height - random.randint(20, 150)
-        if random.random() < 0.7:
+        if random.random() < 0.6:  # 60% chance to create a moving platform
             platforms.append(create_moving_platform(x, y))
         else:
             platforms.append(create_platform(x, y))
@@ -238,9 +239,9 @@ while True:
         if isinstance(platform, pygame.Rect):
             pygame.draw.rect(screen, WHITE, platform.move(-camera_x, 0))
         elif isinstance(platform, dict):
-            pygame.draw.rect(screen, WHITE, platform['rect'].move(-camera_x, 0))
+            pygame.draw.rect(screen, RED, platform['rect'].move(-camera_x, 0))  # Moving platforms in red
     
-    pygame.draw.ellipse(screen, RED, ball_rect.move(-camera_x, 0))
+    pygame.draw.ellipse(screen, YELLOW, ball_rect.move(-camera_x, 0))
 
     # Draw score
     score_text = font.render(f"Score: {score}", True, WHITE)
