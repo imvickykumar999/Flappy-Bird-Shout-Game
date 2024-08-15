@@ -2,6 +2,9 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// Get the start message element
+const startMessage = document.getElementById('startMessage');
+
 // Set canvas size to the window size
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -250,5 +253,6 @@ function gameLoop() {
 document.addEventListener('click', async () => {
     await setupAudio();
     resetGame();
+    startMessage.style.display = 'none'; // Hide the start message
     gameLoop();
 });
