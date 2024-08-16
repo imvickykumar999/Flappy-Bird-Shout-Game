@@ -32,16 +32,33 @@
             text-align: center;
             pointer-events: none;
         }
+        .game-over-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+        }
+        .game-over-screen button {
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div class="overlay" id="startMessage">Click to start game</div>
     <canvas id="gameCanvas" width="1300" height="800"></canvas>
+    <div class="game-over-screen" id="gameOverScreen">
+        <button onclick="restartGame()">Restart</button>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
         const startMessage = document.getElementById('startMessage');
+        const gameOverScreen = document.getElementById('gameOverScreen');
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -53,13 +70,13 @@
         let WIDTH = canvas.width;
         let HEIGHT = canvas.height;
         const birdSize = 30;
-        const gravity = 0.2;
-        const flapStrength = -4;
+        const gravity = 0.1;
+        const flapStrength = -3;
         const pipeWidth = 80;
-        const pipeGap = 250;
-        const pipeSpeed = 3;
-        const pipeDistance = 300;
-        const threshold = 50;
+        const pipeGap = 300;
+        const pipeSpeed = 2;
+        const pipeDistance = 400;
+        const threshold = 40;
 
         let bird = {
             x: WIDTH / 4,
@@ -103,6 +120,7 @@
             pipes = [];
             score = 0;
             gameOver = false;
+            gameOverScreen.style.display = 'none'; // Hide game over screen
             addPipe();
         }
 
@@ -119,12 +137,12 @@
         }
 
         function handleGameOver() {
-            ctx.fillStyle = 'red';
-            ctx.font = '48px Arial';
-            ctx.fillText('Game Over', WIDTH / 2 - 120, HEIGHT / 2 - 20);
-            ctx.font = '24px Arial';
-            ctx.fillText(`Score: ${score}`, WIDTH / 2 - 60, HEIGHT / 2 + 30);
             gameOver = true;
+            gameOverScreen.style.display = 'block'; // Show game over screen
+        }
+
+        function restartGame() {
+            window.location.reload(); // Reload the page to restart the game
         }
 
         function update() {
