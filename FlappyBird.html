@@ -38,14 +38,11 @@
     <div class="overlay" id="startMessage">Click to start game</div>
     <canvas id="gameCanvas" width="1300" height="800"></canvas>
     <script>
-        // Get the canvas and its context
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Get the start message element
         const startMessage = document.getElementById('startMessage');
 
-        // Set canvas size to the window size
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -53,34 +50,32 @@
 
         resizeCanvas();
 
-        // Game properties
         let WIDTH = canvas.width;
         let HEIGHT = canvas.height;
         const birdSize = 30;
         const gravity = 0.2;
         const flapStrength = -4;
         const pipeWidth = 80;
-        const pipeGap = 250;  // Increased vertical gap between pipes
+        const pipeGap = 250;
         const pipeSpeed = 3;
-        const pipeDistance = 500; // Increased horizontal distance between pipes
-        const threshold = 50; // Threshold for sound detection
+        const pipeDistance = 300;
+        const threshold = 50;
 
         let bird = {
             x: WIDTH / 4,
             y: HEIGHT / 2,
             speedY: 0,
+            distanceTraveled: 0,
         };
 
         let pipes = [];
         let score = 0;
         let gameOver = false;
 
-        // Initialize Web Audio API
         let audioContext;
         let analyser;
         let dataArray;
 
-        // Set up audio
         async function setupAudio() {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
@@ -91,29 +86,26 @@
             dataArray = new Uint8Array(analyser.frequencyBinCount);
         }
 
-        // Get the sound intensity from the microphone input
         function getSoundIntensity() {
             analyser.getByteFrequencyData(dataArray);
             const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
             return average;
         }
 
-        // Check if sound is detected based on the threshold
         function isSoundDetected() {
             return getSoundIntensity() > threshold;
         }
 
-        // Initialize game state
         function resetGame() {
             bird.y = HEIGHT / 2;
             bird.speedY = 0;
+            bird.distanceTraveled = 0;
             pipes = [];
             score = 0;
             gameOver = false;
             addPipe();
         }
 
-        // Create a pipe
         function createPipe() {
             const pipeY = Math.random() * (HEIGHT - pipeGap - 100) + 50;
             pipes.push({
@@ -122,12 +114,10 @@
             });
         }
 
-        // Add a new pipe
         function addPipe() {
             createPipe();
         }
 
-        // Handle game over
         function handleGameOver() {
             ctx.fillStyle = 'red';
             ctx.font = '48px Arial';
@@ -137,7 +127,6 @@
             gameOver = true;
         }
 
-        // Game update logic
         function update() {
             if (gameOver) return;
 
@@ -148,20 +137,19 @@
             bird.speedY += gravity;
             bird.y += bird.speedY;
 
-            // Move pipes
+            bird.distanceTraveled += pipeSpeed; // Increase distance as the bird moves
+            score = Math.floor(bird.distanceTraveled / 10); // Update score based on distance
+
             pipes.forEach(pipe => {
                 pipe.x -= pipeSpeed;
             });
 
-            // Remove off-screen pipes
             pipes = pipes.filter(pipe => pipe.x + pipeWidth > 0);
 
-            // Add new pipe if necessary
-            if (pipes[pipes.length - 1].x < WIDTH - pipeDistance) {  // Increased horizontal distance between pipes
+            if (pipes[pipes.length - 1].x < WIDTH - pipeDistance) {
                 addPipe();
             }
 
-            // Check for collisions
             pipes.forEach(pipe => {
                 if (
                     (bird.x + birdSize / 2 > pipe.x && bird.x - birdSize / 2 < pipe.x + pipeWidth) &&
@@ -171,55 +159,40 @@
                 }
             });
 
-            // Check if bird hits the ground or flies too high
             if (bird.y + birdSize / 2 > HEIGHT || bird.y - birdSize / 2 < 0) {
                 handleGameOver();
             }
-
-            // Update score
-            pipes.forEach(pipe => {
-                if (!pipe.passed && pipe.x + pipeWidth < bird.x) {
-                    score += 1;
-                    pipe.passed = true;
-                }
-            });
         }
 
-        // Draw the game objects on the canvas
         function draw() {
             ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
-            // Draw pipes
             pipes.forEach(pipe => {
                 ctx.fillStyle = 'green';
                 ctx.fillRect(pipe.x, 0, pipeWidth, pipe.y);
                 ctx.fillRect(pipe.x, pipe.y + pipeGap, pipeWidth, HEIGHT - pipe.y - pipeGap);
             });
 
-            // Draw bird
             ctx.fillStyle = 'yellow';
             ctx.beginPath();
             ctx.arc(bird.x, bird.y, birdSize / 2, 0, Math.PI * 2);
             ctx.fill();
 
-            // Draw score
             ctx.fillStyle = 'white';
             ctx.font = '36px Arial';
             ctx.fillText(`Score: ${score}`, 10, 40);
         }
 
-        // Start the game loop
         function gameLoop() {
             update();
             draw();
             requestAnimationFrame(gameLoop);
         }
 
-        // Set up the game on user interaction
         document.addEventListener('click', async () => {
             await setupAudio();
             resetGame();
-            startMessage.style.display = 'none'; // Hide the start message
+            startMessage.style.display = 'none';
             gameLoop();
         });
     </script>
