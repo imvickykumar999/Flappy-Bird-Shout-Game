@@ -26,7 +26,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: white;
+            color: black;
             font-size: 24px;
             font-family: Arial, sans-serif;
             text-align: center;
@@ -191,12 +191,12 @@
                 ctx.fillRect(pipe.x, pipe.y + pipeGap, pipeWidth, HEIGHT - pipe.y - pipeGap);
             });
 
-            ctx.fillStyle = 'yellow';
+            ctx.fillStyle = 'red';
             ctx.beginPath();
             ctx.arc(bird.x, bird.y, birdSize / 2, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = 'white';
+            ctx.fillStyle = 'black';
             ctx.font = '36px Arial';
             ctx.fillText(`Score: ${score}`, 10, 40);
         }
