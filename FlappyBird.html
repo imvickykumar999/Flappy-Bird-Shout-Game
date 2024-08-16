@@ -45,6 +45,22 @@
             font-size: 20px;
             cursor: pointer;
         }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999; /* Make sure it is on top of other elements */
+        }
+        .loading-overlay img {
+            width: 50px; /* Adjust size of the loading icon as needed */
+            height: 50px;
+        }
     </style>
 </head>
 <body>
@@ -53,12 +69,16 @@
     <div class="game-over-screen" id="gameOverScreen">
         <button onclick="restartGame()">Restart</button>
     </div>
+    <div class="loading-overlay" id="loadingOverlay">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" alt="Loading..."> <!-- Example loading icon -->
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
         const startMessage = document.getElementById('startMessage');
         const gameOverScreen = document.getElementById('gameOverScreen');
+        const loadingOverlay = document.getElementById('loadingOverlay');
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -141,8 +161,15 @@
             gameOverScreen.style.display = 'block'; // Show game over screen
         }
 
+        function showLoadingOverlay() {
+            loadingOverlay.style.display = 'flex';
+        }
+
         function restartGame() {
-            window.location.reload(); // Reload the page to restart the game
+            showLoadingOverlay();
+            setTimeout(() => {
+                window.location.reload(); // Reload the page after showing the loading overlay
+            }, 500); // Adjust delay as needed
         }
 
         function update() {
