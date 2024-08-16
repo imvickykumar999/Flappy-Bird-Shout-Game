@@ -41,9 +41,21 @@
             display: none;
         }
         .game-over-screen button {
-            padding: 10px 20px;
-            font-size: 20px;
+            padding: 15px 30px;
+            font-size: 24px;
+            color: white;
+            background-color: #ff6f61;
+            border: none;
+            border-radius: 10px;
             cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .game-over-screen button:hover {
+            background-color: #ff3b30;
+            transform: scale(1.05);
+        }
+        .game-over-screen button:active {
+            transform: scale(0.95);
         }
         .loading-overlay {
             position: absolute;
