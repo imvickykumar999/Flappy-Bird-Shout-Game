@@ -1,3 +1,2 @@
-># `Floor is Lava Game`
->
->![image](https://github.com/user-attachments/assets/ef66e912-80e5-48b5-9705-9ceb04501a3e)
+># `Flappy Bird 🐦 `
+>![image](https://github.com/user-attachments/assets/fba58fb2-09da-4343-bf5a-1cfe166b84d2)
