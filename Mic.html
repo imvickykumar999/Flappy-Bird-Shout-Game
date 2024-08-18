@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Level Indicator</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #282c34;
+        }
+        .audio-bar-container {
+            width: 50px;
+            height: 300px;
+            background-color: #444;
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+        }
+        .audio-bar {
+            width: 100%;
+            height: 0; /* Start with 0 height */
+            background-color: #00ff00;
+            transition: height 0.1s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <button id="startButton">Start Audio</button>
+    <div class="audio-bar-container" style="display:none;">
+        <div class="audio-bar" id="audioBar"></div>
+    </div>
+
+    <script>
+        let audioContext;
+        let analyser;
+        let dataArray;
+
+        // Function to setup the audio context and analyser
+        async function setupAudio() {
+            try {
+                // Create the AudioContext after a user gesture
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+
+                // Get user's microphone input
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                // Connect the audio stream to the analyser
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+
+                // Configure the analyser
+                analyser.fftSize = 256;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+                console.log("Audio setup complete");
+
+                // Show the audio bar container
+                document.querySelector('.audio-bar-container').style.display = 'block';
+
+                // Start visualizing the audio input
+                visualizeAudio();
+            } catch (error) {
+                console.error("Error setting up audio:", error);
+            }
+        }
+
+        // Function to visualize the audio data by changing the height of the bar
+        function visualizeAudio() {
+            requestAnimationFrame(visualizeAudio); // Continuously update the visualization
+
+            analyser.getByteFrequencyData(dataArray); // Get frequency data
+
+            const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length; // Calculate average loudness
+            
+            const barHeight = Math.min((average - 20) * 2, 300); // Adjust the bar height based on the average
+            const audioBar = document.getElementById('audioBar');
+            audioBar.style.height = `${barHeight}px`; // Set the bar height
+        }
+
+        // Trigger the setupAudio function after a user gesture
+        const button = document.getElementById("startButton");
+        button.addEventListener("click", setupAudio);
+    </script>
+</body>
+</html>
