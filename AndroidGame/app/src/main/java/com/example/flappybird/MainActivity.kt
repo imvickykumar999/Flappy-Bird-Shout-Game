@@ -6,6 +6,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -17,12 +18,12 @@ import com.example.flappybird.ui.theme.FlappyBirdTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             FlappyBirdTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     WebViewContainer(
-                        url = "https://imvickykumar999.w3spaces.com/",
-                        modifier = Modifier.padding(innerPadding) // Apply innerPadding here
+                        modifier = Modifier.padding(innerPadding)
                     )
                 }
             }
@@ -31,13 +32,17 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun WebViewContainer(url: String, modifier: Modifier = Modifier) {
+fun WebViewContainer(modifier: Modifier = Modifier) {
+    // URL of the website hosted
+    val websiteUrl = "https://imvickykumar999.w3spaces.com/"
+
     AndroidView(
         factory = { context ->
             WebView(context).apply {
                 settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true // Enable DOM storage for your HTML content
                 webViewClient = WebViewClient()
-                loadUrl(url)
+                loadUrl(websiteUrl)
             }
         },
         modifier = modifier
