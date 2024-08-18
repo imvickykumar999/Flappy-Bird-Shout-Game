@@ -1,2 +1,2 @@
 ># `Flappy Bird 🐦 `
->![image](https://github.com/user-attachments/assets/fba58fb2-09da-4343-bf5a-1cfe166b84d2)
+>![image](https://github.com/user-attachments/assets/297e546f-8dc7-435c-a43b-e820e94dde2b)
