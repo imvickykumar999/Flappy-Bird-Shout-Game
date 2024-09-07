@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird Game with Audio Visualization</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #70c5ce;
+        }
+        canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            background-image: url('https://user-images.githubusercontent.com/18351809/46888871-624a3900-ce7f-11e8-808e-99fd90c8a3f4.png');
+            background-size: cover;
+            background-position: center;
+        }
+        .overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: black;
+            font-size: 24px;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            pointer-events: none;
+        }
+        .game-over-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+        }
+        .game-over-screen button {
+            padding: 15px 30px;
+            font-size: 24px;
+            color: white;
+            background-color: #ff6f61;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .game-over-screen button:hover {
+            background-color: #ff3b30;
+            transform: scale(1.05);
+        }
+        .game-over-screen button:active {
+            transform: scale(0.95);
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .loading-overlay img {
+            width: 50px;
+            height: 50px;
+        }
+        /* Style for the audio bar */
+        .audio-bar-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 150px;
+            background-color: #444;
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+            z-index: 1000; /* Ensure the bar is on top of other elements */
+        }
+        .audio-bar {
+            width: 100%;
+            height: 0;
+            background-color: #ff0000;
+            transition: height 0.1s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="startMessage">
+        Click to start <br>
+        flappy bird game
+    </div>
+    <canvas id="gameCanvas" width="1300" height="800"></canvas>
+    <div class="audio-bar-container">
+        <div class="audio-bar" id="audioBar"></div>
+    </div>
+    <div class="game-over-screen" id="gameOverScreen">
+        <button onclick="restartGame()">Restart</button>
+    </div>
+    <div class="loading-overlay" id="loadingOverlay">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" alt="Loading...">
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const startMessage = document.getElementById('startMessage');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const audioBar = document.getElementById('audioBar');
+
+        // Load the bird image
+        const birdImage = new Image();
+        birdImage.src = 'bird.gif'; // Make sure bird.gif is in the correct path
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        resizeCanvas();
+
+        let WIDTH = canvas.width;
+        let HEIGHT = canvas.height;
+        const birdSize = 30;
+        const gravity = 0.1;
+        const flapStrength = -3;
+        const pipeWidth = 80;
+        const pipeGap = 300;
+        const pipeSpeed = 2;
+        const pipeDistance = 400;
+        const threshold = 40;
+
+        let bird = {
+            x: WIDTH / 4,
+            y: HEIGHT / 2,
+            speedY: 0,
+            distanceTraveled: 0,
+        };
+
+        let pipes = [];
+        let score = 0;
+        let gameOver = false;
+
+        let audioContext;
+        let analyser;
+        let dataArray;
+
+        async function setupAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 256;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+        }
+
+        function getSoundIntensity() {
+            analyser.getByteFrequencyData(dataArray);
+            const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+            return average;
+        }
+
+        function isSoundDetected() {
+            const intensity = getSoundIntensity();
+            updateAudioBar(intensity); // Update the audio bar height
+            return intensity > threshold;
+        }
+
+        function updateAudioBar(intensity) {
+            const barHeight = Math.min((intensity - 20) * 3, 150); // Adjusted for visual sensitivity
+            audioBar.style.height = `${barHeight}px`;
+        }
+
+        function resetGame() {
+            bird.y = HEIGHT / 2;
+            bird.speedY = 0;
+            bird.distanceTraveled = 0;
+            pipes = [];
+            score = 0;
+            gameOver = false;
+            gameOverScreen.style.display = 'none'; // Hide game over screen
+            addPipe();
+        }
+
+        function createPipe() {
+            const pipeY = Math.random() * (HEIGHT - pipeGap - 100) + 50;
+            pipes.push({
+                x: WIDTH,
+                y: pipeY,
+            });
+        }
+
+        function addPipe() {
+            createPipe();
+        }
+
+        function handleGameOver() {
+            gameOver = true;
+            gameOverScreen.style.display = 'block'; // Show game over screen
+        }
+
+        function showLoadingOverlay() {
+            loadingOverlay.style.display = 'flex';
+        }
+
+        function restartGame() {
+            showLoadingOverlay();
+            setTimeout(() => {
+                window.location.reload(); // Reload the page after showing the loading overlay
+            }, 500); // Adjust delay as needed
+        }
+
+        function update() {
+            if (gameOver) return;
+
+            if (isSoundDetected()) {
+                bird.speedY = flapStrength;
+            }
+
+            bird.speedY += gravity;
+            bird.y += bird.speedY;
+
+            bird.distanceTraveled += pipeSpeed; // Increase distance as the bird moves
+            score = Math.floor(bird.distanceTraveled / 10); // Update score based on distance
+
+            pipes.forEach(pipe => {
+                pipe.x -= pipeSpeed;
+            });
+
+            pipes = filteredPipes(pipes, pipeWidth);
+
+            if (pipes[pipes.length - 1].x < WIDTH - pipeDistance) {
+                addPipe();
+            }
+
+            if (isCollisionDetected(bird, pipes, birdSize, pipeWidth, pipeGap)) {
+                handleGameOver();
+            }
+
+            if (bird.y + birdSize / 2 > HEIGHT || bird.y - birdSize / 2 < 0) {
+                handleGameOver();
+            }
+        }
+
+        function filteredPipes(pipes, pipeWidth) {
+            return pipes.filter(pipe => pipe.x + pipeWidth > 0);
+        }
+
+        function isCollisionDetected(bird, pipes, birdSize, pipeWidth, pipeGap) {
+            return pipes.some(pipe => (
+                (bird.x + birdSize / 2 > pipe.x && bird.x - birdSize / 2 < pipe.x + pipeWidth) &&
+                (bird.y - birdSize / 2 < pipe.y || bird.y + birdSize / 2 > pipe.y + pipeGap)
+            ));
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+            pipes.forEach(pipe => {
+                ctx.fillStyle = 'green';
+                ctx.fillRect(pipe.x, 0, pipeWidth, pipe.y);
+                ctx.fillRect(pipe.x, pipe.y + pipeGap, pipeWidth, HEIGHT - pipe.y - pipeGap);
+            });
+
+            // Draw the bird image instead of the red ball
+            ctx.drawImage(birdImage, bird.x - birdSize / 2, bird.y - birdSize / 2, birdSize, birdSize);
+
+            ctx.fillStyle = 'black';
+            ctx.font = '36px Arial';
+            ctx.fillText(`Score: ${score}`, 10, 40);
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener('click', async () => {
+            await setupAudio();
+            resetGame();
+            startMessage.style.display = 'none';
+            gameLoop();
+        });
+    </script>
+</body>
+</html>
