@@ -1,0 +1,31 @@
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird Game with Audio Visualization</title>
+    <link rel="stylesheet" href="{% static 'game/style.css' %}">
+</head>
+
+<body>
+    <div class="overlay" id="startMessage">
+        Click to Start <br>
+        Shout to Play
+    </div>
+    <canvas id="gameCanvas" width="1300" height="800"></canvas>
+    <div class="audio-bar-container">
+        <div class="audio-bar" id="audioBar"></div>
+    </div>
+    <div class="game-over-screen" id="gameOverScreen">
+        <button onclick="restartGame()">Restart</button>
+    </div>
+    <div class="loading-overlay" id="loadingOverlay">
+        <img src="{% static 'game/Loading_2.gif' %}" alt="Loading...">
+    </div>
+
+    <script src="{% static 'game/flappy.js' %}"></script>
+</body>
+</html>
