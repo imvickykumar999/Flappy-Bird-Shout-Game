@@ -37,6 +37,7 @@
         <img src="{% static 'game/Loading_2.gif' %}" alt="Loading...">
     </div>
 
+    <input type="hidden" name="csrfmiddlewaretoken" value='{% csrf_token %}'>
     <script src="{% static 'game/flappy.js' %}"></script>
 </body>
 </html>
