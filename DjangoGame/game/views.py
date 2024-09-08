@@ -21,3 +21,7 @@ def update_score(request):
 
         return JsonResponse({'message': 'Score updated successfully'})
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def high_score_view(request):
+    high_score = HighScore.objects.order_by('-score').first()  # Get the highest score
+    return render(request, 'game/high_score.html', {'high_score': high_score})

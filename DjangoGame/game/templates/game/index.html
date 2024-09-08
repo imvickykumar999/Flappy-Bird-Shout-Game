@@ -8,6 +8,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flappy Bird Game with Audio Visualization</title>
     <link rel="stylesheet" href="{% static 'game/style.css' %}">
+
+    <style>
+        canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            background-image: url("{% static 'game/background.png' %}");
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
 </head>
 
 <body>

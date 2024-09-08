@@ -24,7 +24,7 @@ const pipeWidth = 80;
 const pipeGap = 300;
 const pipeSpeed = 2;
 const pipeDistance = 400;
-const threshold = 40;
+const threshold = 100;
 
 let bird = {
     x: WIDTH / 4,
