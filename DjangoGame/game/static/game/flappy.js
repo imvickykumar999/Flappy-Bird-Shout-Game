@@ -9,12 +9,14 @@ const audioBar = document.getElementById('audioBar');
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    WIDTH = canvas.width;
+    HEIGHT = canvas.height;
 }
 
 resizeCanvas();
 
-let WIDTH = canvas.width;
-let HEIGHT = canvas.height;
+window.addEventListener('resize', resizeCanvas);
+
 const birdSize = 30;
 const gravity = 0.1;
 const flapStrength = -3;
@@ -57,12 +59,12 @@ function getSoundIntensity() {
 
 function isSoundDetected() {
     const intensity = getSoundIntensity();
-    updateAudioBar(intensity); // Update the audio bar height
+    updateAudioBar(intensity);
     return intensity > threshold;
 }
 
 function updateAudioBar(intensity) {
-    const barHeight = Math.min((intensity - 20) * 3, 150); // Adjusted for visual sensitivity
+    const barHeight = Math.min((intensity - 20) * 3, 150);
     audioBar.style.height = `${barHeight}px`;
 }
 
@@ -73,7 +75,7 @@ function resetGame() {
     pipes = [];
     score = 0;
     gameOver = false;
-    gameOverScreen.style.display = 'none'; // Hide game over screen
+    gameOverScreen.style.display = 'none';
     addPipe();
 }
 
@@ -91,7 +93,35 @@ function addPipe() {
 
 function handleGameOver() {
     gameOver = true;
-    gameOverScreen.style.display = 'block'; // Show game over screen
+    gameOverScreen.style.display = 'block';
+
+    const formData = new FormData();
+    formData.append('score', score);
+    formData.append('player_name', 'Player');
+
+    fetch('/update_score/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    }).then(response => response.json())
+      .then(data => console.log(data));
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 
 function showLoadingOverlay() {
@@ -101,8 +131,8 @@ function showLoadingOverlay() {
 function restartGame() {
     showLoadingOverlay();
     setTimeout(() => {
-        window.location.reload(); // Reload the page after showing the loading overlay
-    }, 500); // Adjust delay as needed
+        window.location.reload();
+    }, 500);
 }
 
 function update() {
@@ -115,8 +145,8 @@ function update() {
     bird.speedY += gravity;
     bird.y += bird.speedY;
 
-    bird.distanceTraveled += pipeSpeed; // Increase distance as the bird moves
-    score = Math.floor(bird.distanceTraveled / 10); // Update score based on distance
+    bird.distanceTraveled += pipeSpeed;
+    score = Math.floor(bird.distanceTraveled / 10);
 
     pipes.forEach(pipe => {
         pipe.x -= pipeSpeed;
