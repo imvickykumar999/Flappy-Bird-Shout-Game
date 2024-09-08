@@ -1,0 +1,70 @@
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High Score</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+            background-image: url("{% static 'game/background.png' %}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        h1 {
+            color: #333;
+        }
+        .score-box {
+            background-color: rgba(255, 255, 255, 0.8); /* Added transparency */
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            display: inline-block;
+            margin-top: 50px;
+        }
+        .score-box h2 {
+            margin: 0;
+            font-size: 2em;
+            color: #007BFF;
+        }
+        .score-box p {
+            margin: 0;
+            font-size: 1.5em;
+            color: green;
+        }
+        .play-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: white;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .play-button:hover {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flappy Bird High Score</h1>
+    
+    <div class="score-box">
+        <h2>High Score: {{ high_score.score }}</h2> <br>
+        <p>Date Achieved: <br> {{ high_score.date }}</p>
+    </div>
+
+    <br><br>
+    <button class="play-button" onclick="window.location.href='game/'">Play</button> <!-- Redirects to game -->
+    
+</body>
+</html>
