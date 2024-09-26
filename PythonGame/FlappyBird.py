@@ -13,7 +13,10 @@ audio = pyaudio.PyAudio()
 stream = audio.open(format=pyaudio.paInt16, channels=1, rate=44100, input=True, frames_per_buffer=1024)
 
 # Initialize OpenCV camera
-camera = cv2.VideoCapture(0)
+ip_webcam_url = 'http://192.168.0.104:8080/video'  # Replace with your actual URL
+
+camera = cv2.VideoCapture(ip_webcam_url)
+# camera = cv2.VideoCapture(0)
 
 # Screen dimensions (Fullscreen)
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
