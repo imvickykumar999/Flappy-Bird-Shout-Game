@@ -3,6 +3,7 @@ import sys
 import random
 import pyaudio
 import numpy as np
+import cv2  # Import OpenCV for camera feed
 
 # Initialize Pygame
 pygame.init()
@@ -11,12 +12,14 @@ pygame.init()
 audio = pyaudio.PyAudio()
 stream = audio.open(format=pyaudio.paInt16, channels=1, rate=44100, input=True, frames_per_buffer=1024)
 
+# Initialize OpenCV camera
+camera = cv2.VideoCapture(0)
+
 # Screen dimensions (Fullscreen)
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 WIDTH, HEIGHT = screen.get_size()
 
 # Colors
-BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 PIPE_COLOR = (0, 255, 0)
@@ -60,6 +63,25 @@ def get_sound_intensity():
 
 def is_sound_detected(threshold=1000):
     return get_sound_intensity() > threshold
+
+# Function to convert OpenCV frame to Pygame surface
+def get_camera_frame():
+    ret, frame = camera.read()
+    if not ret:
+        return None
+
+    # Flip the frame so it's not mirrored
+    frame = cv2.flip(frame, 1)
+
+    # Resize the frame to fit the screen
+    frame = cv2.resize(frame, (WIDTH, HEIGHT))
+
+    # Convert the frame to RGB (OpenCV uses BGR by default)
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    # Convert the frame to a Pygame surface
+    frame_surface = pygame.surfarray.make_surface(frame_rgb.transpose(1, 0, 2))
+    return frame_surface
 
 # Initialize game state
 pipes = []
@@ -118,8 +140,10 @@ while True:
         if pipe[0] + pipe_width < bird_x and not pipe[0] + pipe_width < bird_x - pipe_speed:
             score += 1
 
-    # Clear the screen
-    screen.fill(BLACK)
+    # Get camera frame and use it as the background
+    camera_frame = get_camera_frame()
+    if camera_frame is not None:
+        screen.blit(camera_frame, (0, 0))
 
     # Draw pipes
     for pipe in pipes:
@@ -140,3 +164,6 @@ while True:
 
     # Cap the frame rate
     clock.tick(60)
+
+# Release the camera on exit
+camera.release()
